@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resources — Wheeler High School FBLA</title>
+  <link rel="icon" href="wfbla.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ══════════════════════════════════════════════
+       GOOGLE CALENDAR STYLE — MEETING RECAP CAL
+    ══════════════════════════════════════════════ */
+
+    .gcal-wrapper {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      max-width: 1100px;
+      margin: 0 auto;
+      border: 1px solid #e5e7eb;
+    }
+
+    /* Header bar */
+    .gcal-header {
+      background: var(--navy-deep);
+      padding: 1.1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--white);
+    }
+    .gcal-month-label {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
+    .gcal-nav {
+      background: rgba(255,255,255,.12);
+      border: none;
+      color: var(--white);
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      font-size: 1.2rem;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .gcal-nav:hover {
+      background: rgba(242,169,0,.28);
+      color: var(--gold-light);
+    }
+
+    /* Day-of-week header */
+    .gcal-dow {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      border-bottom: 2px solid #e5e7eb;
+    }
+    .gcal-dow span {
+      text-align: center;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--text-light);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 0.75rem 0;
+      border-right: 1px solid #e5e7eb;
+    }
+    .gcal-dow span:last-child { border-right: none; }
+
+    /* Cell grid */
+    .gcal-cells {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+
+    .gcal-cell {
+      min-height: 120px;
+      padding: 10px 10px 8px;
+      border-right: 1px solid #e5e7eb;
+      border-bottom: 1px solid #e5e7eb;
+      position: relative;
+      transition: background 0.18s ease;
+      background: var(--white);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .gcal-cell:nth-child(7n) { border-right: none; }
+
+    .gcal-cell.other-month {
+      background: #f9fafb;
+    }
+    .gcal-cell.other-month .gcal-date-num {
+      color: #c5cad4;
+    }
+
+    .gcal-cell.today .gcal-date-num {
+      background: var(--navy);
+      color: var(--white);
+      border-radius: 50%;
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900;
+    }
+
+    .gcal-date-num {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      line-height: 1;
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Gold meeting pill — every Wednesday */
+    .gcal-event-pill {
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      color: var(--navy);
+      border-radius: 6px;
+      padding: 5px 9px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: filter 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      user-select: none;
+    }
+    .gcal-event-pill:hover {
+      filter: brightness(1.06);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(242,169,0,.4);
+    }
+    .gcal-event-pill .pill-icon { font-size: 0.85rem; flex-shrink: 0; }
+
+    /* ── Popup modal ── */
+    .recap-popup {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      backdrop-filter: blur(6px);
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .recap-popup.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .recap-popup-box {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      max-width: 500px;
+      width: 100%;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      transform: scale(0.88) translateY(20px);
+      opacity: 0;
+      transition: transform 0.32s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease;
+    }
+    .recap-popup.open .recap-popup-box {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+    .recap-popup-header {
+      background: linear-gradient(135deg, var(--navy-deep), var(--navy));
+      padding: 1.4rem 1.6rem;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .recap-popup-header-left h3 {
+      color: var(--white);
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-bottom: 0.3rem;
+    }
+    .recap-popup-date-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(242,169,0,.18);
+      border: 1px solid rgba(242,169,0,.3);
+      color: var(--gold-light);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.25rem 0.7rem;
+      border-radius: 100px;
+    }
+    .recap-popup-close {
+      background: rgba(255,255,255,.12);
+      border: none;
+      color: var(--white);
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+    .recap-popup-close:hover { background: rgba(242,169,0,.3); color: var(--gold-light); }
+
+    .recap-popup-body { padding: 1.5rem 1.6rem; }
+
+    .recap-section-label {
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-light);
+      margin-bottom: 0.5rem;
+    }
+    .recap-text {
+      font-size: 0.88rem;
+      color: var(--text-mid);
+      line-height: 1.75;
+      margin-bottom: 1.4rem;
+      padding: 0.9rem 1rem;
+      background: var(--bg);
+      border-radius: 8px;
+      border-left: 3px solid var(--gold);
+    }
+    .recap-slides-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--navy);
+      color: var(--white);
+      padding: 0.65rem 1.3rem;
+      border-radius: 9px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    .recap-slides-btn:hover {
+      background: var(--navy-mid);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+    .recap-no-slides {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-light);
+      font-size: 0.84rem;
+      font-style: italic;
+      background: #f3f4f6;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+    }
+
+    /* Legend row */
+    .gcal-legend {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      justify-content: center;
+      margin-top: 1.1rem;
+      font-size: 0.8rem;
+      color: var(--text-light);
+      font-weight: 600;
+    }
+    .gcal-legend-pill {
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      width: 28px; height: 14px;
+      border-radius: 4px;
+    }
+
+    /* Responsive shrink */
+    @media (max-width: 700px) {
+      .gcal-cell { min-height: 70px; padding: 6px 4px; }
+      .gcal-event-pill { font-size: 0.65rem; padding: 3px 5px; }
+      .gcal-event-pill .pill-icon { display: none; }
+      .gcal-date-num { font-size: 0.78rem; width: 22px; height: 22px; }
+      .gcal-month-label { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════════════════════════ -->
+<nav class="navbar">
+  <a class="navbar-brand" href="index.html">
+    <img src="wfbla.png" alt="Wheeler FBLA Logo" />
+    <span class="brand-text">Wheeler <span>FBLA</span></span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="Resources.html" class="active">Resources</a>
+    <a href="aistudytool.html">AI Study Tool</a>
+    <a href="Photos.html">Photos</a>
+  </div>
+  <button class="hamburger" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="mobile-menu">
+    <a href="index.html">Home</a>
+    <a href="Resources.html" class="active">Resources</a>
+    <a href="aistudytool.html">AI Study Tool</a>
+    <a href="Photos.html">Photos</a>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE HERO HEADER
+══════════════════════════════════════════════════════════ -->
+<section style="background:linear-gradient(135deg,var(--navy-deep) 0%,var(--navy) 70%,#003a80 100%);padding:3.5rem 2rem 3rem;position:relative;overflow:hidden;">
+  <div style="position:absolute;top:-60px;right:-60px;width:300px;height:300px;border:1px solid rgba(242,169,0,.08);border-radius:50%;pointer-events:none;"></div>
+  <div style="position:absolute;bottom:-40px;left:5%;width:160px;height:160px;border:1px solid rgba(255,255,255,.04);border-radius:50%;pointer-events:none;"></div>
+  <div class="container" style="position:relative;z-index:1;text-align:center;">
+    <div class="hero-eyebrow anim-fade-up" style="display:inline-flex;align-items:center;gap:.5rem;margin-bottom:1rem;">
+      <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="#F2A900"/></svg>
+      Member Resources &amp; Study Materials
+    </div>
+    <h1 class="anim-fade-up delay-100" style="color:var(--white);">Resources</h1>
+    <div class="hero-accent-line anim-scale-in delay-200" style="margin:0.8rem auto 1.25rem;"></div>
+    <p class="anim-fade-up delay-300" style="color:rgba(255,255,255,.72);max-width:560px;margin:0 auto;font-size:1rem;">
+      Everything you need to compete, prepare, and represent Wheeler FBLA at the highest level — all in one place.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     RESOURCE CARDS
+══════════════════════════════════════════════════════════ -->
+<section class="section" style="background:var(--bg);">
+  <div class="container">
+    <div class="resource-grid">
+
+      <div class="resource-card reveal">
+        <div class="resource-card-icon">📁</div>
+        <h3>Presentation Event Resources</h3>
+        <p>Access examples, templates, and judging guidelines for presentation-style FBLA events.</p>
+        <a href="https://drive.google.com/drive/u/0/folders/1ioWjkT9G1zs_I708KtQPMtGr3xlRAMtF"
+           class="btn btn-navy" style="margin-top:auto;" target="_blank" rel="noopener">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Open Google Drive Folder
+        </a>
+      </div>
+
+      <div class="resource-card reveal reveal-delay-1">
+        <div class="resource-card-icon">📝</div>
+        <h3>Practice Objective Tests</h3>
+        <p>Prepare for competitive events with past objective tests and study materials curated by members.</p>
+        <a href="https://drive.google.com/drive/folders/1zNqVlJCRWfG51m4a2TouF8Hkm829SL67"
+           class="btn btn-navy" style="margin-top:auto;" target="_blank" rel="noopener">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          View Google Drive Folder
+        </a>
+      </div>
+
+      <div class="resource-card reveal reveal-delay-2">
+        <div class="resource-card-icon">🎥</div>
+        <h3>Example Presentation Videos</h3>
+        <p>Watch past FBLA nationals and regional-winning presentations to learn effective techniques.</p>
+        <a href="https://www.youtube.com/watch?v=VIS8cJYEDtc"
+           class="btn btn-navy" style="margin-top:auto;" target="_blank" rel="noopener">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          Watch on YouTube
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     MEETING PRESENTATIONS & RECAPS — GOOGLE CALENDAR STYLE
+══════════════════════════════════════════════════════════ -->
+<section class="section" style="background:var(--white);padding-top:0;">
+  <div class="container">
+    <h2 class="section-title reveal">Meeting <span>Presentations &amp; Recaps</span></h2>
+    <span class="title-underline reveal"></span>
+    <p class="reveal" style="text-align:center;color:var(--text-light);max-width:560px;margin:0 auto 2rem;font-size:0.9rem;">
+      Missed a meeting? Click any gold event on a Wednesday to view the slideshow and recap of what was covered.
+    </p>
+
+    <!-- Google Calendar widget -->
+    <div class="gcal-wrapper reveal" id="gcalWrapper">
+      <div class="gcal-header">
+        <button class="gcal-nav" id="gcalPrev" aria-label="Previous month">&#8249;</button>
+        <span class="gcal-month-label" id="gcalMonthLabel">Loading…</span>
+        <button class="gcal-nav" id="gcalNext" aria-label="Next month">&#8250;</button>
+      </div>
+      <div class="gcal-dow">
+        <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span>
+        <span>THU</span><span>FRI</span><span>SAT</span>
+      </div>
+      <div class="gcal-cells" id="gcalCells"></div>
+    </div>
+
+    <!-- Legend -->
+    <div class="gcal-legend reveal">
+      <div class="gcal-legend-pill"></div>
+      Click any Wednesday meeting pill to view recap &amp; slides
+    </div>
+  </div>
+</section>
+
+<!-- Recap popup -->
+<div class="recap-popup" id="recapPopup">
+  <div class="recap-popup-box">
+    <div class="recap-popup-header">
+      <div class="recap-popup-header-left">
+        <h3>📋 Meeting Recap</h3>
+        <div class="recap-popup-date-badge" id="recapPopupDate">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span id="recapPopupDateText"></span>
+        </div>
+      </div>
+      <button class="recap-popup-close" id="recapPopupClose">&#10005;</button>
+    </div>
+    <div class="recap-popup-body">
+      <div class="recap-section-label">Meeting Summary</div>
+      <div class="recap-text" id="recapPopupText"></div>
+      <div class="recap-section-label">Slideshow</div>
+      <div id="recapPopupSlides"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     GENERAL TIPS
+══════════════════════════════════════════════════════════ -->
+<section class="section" style="background:var(--bg);padding-top:0;">
+  <div class="container">
+    <div class="navy-block reveal">
+      <div style="display:flex;align-items:center;gap:0.85rem;margin-bottom:1.5rem;">
+        <div style="width:42px;height:42px;border-radius:10px;background:rgba(242,169,0,.15);border:1px solid rgba(242,169,0,.3);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">💼</div>
+        <h2 style="margin-bottom:0;font-size:1.25rem;">General Tips: Presentation &amp; Conference Etiquette</h2>
+      </div>
+      <div class="gold-bullet-list">
+        <div class="gold-bullet-item">
+          <div class="gold-bullet-dot"></div>
+          <p><strong style="color:var(--gold-light);">Business Attire is Required.</strong> Always wear professional, clean, and pressed business attire to all FBLA events, conferences, and competitions — it reflects your respect for the organization and your fellow competitors.</p>
+        </div>
+        <div class="gold-bullet-item">
+          <div class="gold-bullet-dot"></div>
+          <p><strong style="color:var(--gold-light);">Arrive Early.</strong> Plan to be at every event, meeting, or competition venue at least 15–20 minutes ahead of your scheduled time. Punctuality demonstrates professionalism and gives you time to prepare mentally.</p>
+        </div>
+        <div class="gold-bullet-item">
+          <div class="gold-bullet-dot"></div>
+          <p><strong style="color:var(--gold-light);">Speak Clearly and with Confidence.</strong> Whether presenting to judges or speaking on a panel, project your voice, maintain eye contact, and pace yourself. Confidence in delivery can make or break a score.</p>
+        </div>
+        <div class="gold-bullet-item">
+          <div class="gold-bullet-dot"></div>
+          <p><strong style="color:var(--gold-light);">Respect Time Constraints.</strong> Every competitive event has strict time limits. Practice your presentation so it fits within the allotted window — running over or under time can result in point deductions.</p>
+        </div>
+        <div class="gold-bullet-item">
+          <div class="gold-bullet-dot"></div>
+          <p><strong style="color:var(--gold-light);">Take Pride in Representing Wheeler FBLA.</strong> You carry the name of our chapter, our school, and our community. Conduct yourself with integrity, sportsmanship, and enthusiasm at every event.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     DRESS CODE
+══════════════════════════════════════════════════════════ -->
+<section class="section" style="background:var(--white);padding-top:0;">
+  <div class="container">
+    <div class="navy-block reveal">
+      <div style="display:flex;align-items:center;gap:0.85rem;margin-bottom:1.75rem;">
+        <div style="width:42px;height:42px;border-radius:10px;background:rgba(242,169,0,.15);border:1px solid rgba(242,169,0,.3);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">👔</div>
+        <h2 style="margin-bottom:0;font-size:1.25rem;">FBLA Dress Code Guidelines</h2>
+      </div>
+
+      <div style="text-align:center;margin-bottom:1.75rem;">
+        <div style="display:inline-flex;align-items:flex-end;justify-content:center;gap:2.5rem;flex-wrap:wrap;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:0.6rem;">
+            <div style="width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(242,169,0,.3);display:flex;align-items:center;justify-content:center;font-size:2rem;">👨‍💼</div>
+            <span style="color:var(--gold-light);font-size:0.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Men</span>
+          </div>
+          <div style="width:1px;height:60px;background:rgba(255,255,255,.1);"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:0.6rem;">
+            <div style="width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(242,169,0,.3);display:flex;align-items:center;justify-content:center;font-size:2rem;">👩‍💼</div>
+            <span style="color:var(--gold-light);font-size:0.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Women</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dress-code-grid">
+        <div class="dress-code-card">
+          <h4>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z"/></svg>
+            Men's Attire
+          </h4>
+          <ul>
+            <li>White or light-colored dress shirt</li>
+            <li>Conservative business tie</li>
+            <li>Dark dress slacks or trousers</li>
+            <li>Blazer or sport coat (recommended)</li>
+            <li>Polished dress shoes and dark socks</li>
+            <li>Suit jacket for formal events</li>
+          </ul>
+        </div>
+        <div class="dress-code-card">
+          <h4>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z"/></svg>
+            Women's Attire
+          </h4>
+          <ul>
+            <li>Professional blouse or dress shirt</li>
+            <li>Business skirt (knee-length or longer)</li>
+            <li>Dress slacks or tailored trousers</li>
+            <li>Blazer or professional cardigan</li>
+            <li>Professional closed-toe shoes</li>
+            <li>Business dress or pantsuit acceptable</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:1rem 1.25rem;border:1px solid rgba(255,80,80,.2);margin-bottom:1.75rem;">
+        <h4 style="color:#ff8080;font-size:0.78rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.5rem;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          Not Permitted
+        </h4>
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+          <span style="background:rgba(255,80,80,.1);color:rgba(255,150,150,.9);padding:0.25rem 0.7rem;border-radius:100px;font-size:0.78rem;font-weight:600;">Jeans</span>
+          <span style="background:rgba(255,80,80,.1);color:rgba(255,150,150,.9);padding:0.25rem 0.7rem;border-radius:100px;font-size:0.78rem;font-weight:600;">Hoodies</span>
+          <span style="background:rgba(255,80,80,.1);color:rgba(255,150,150,.9);padding:0.25rem 0.7rem;border-radius:100px;font-size:0.78rem;font-weight:600;">Sneakers or Athletic Shoes</span>
+          <span style="background:rgba(255,80,80,.1);color:rgba(255,150,150,.9);padding:0.25rem 0.7rem;border-radius:100px;font-size:0.78rem;font-weight:600;">T-Shirts or Graphic Tees</span>
+          <span style="background:rgba(255,80,80,.1);color:rgba(255,150,150,.9);padding:0.25rem 0.7rem;border-radius:100px;font-size:0.78rem;font-weight:600;">Shorts</span>
+          <span style="background:rgba(255,80,80,.1);color:rgba(255,150,150,.9);padding:0.25rem 0.7rem;border-radius:100px;font-size:0.78rem;font-weight:600;">Flip Flops</span>
+        </div>
+      </div>
+
+      <div style="text-align:center;">
+        <a href="https://www.fbla.org/media/2024/10/2023-Dress-Code_FINAL-scaled-1-768x994.jpg"
+           target="_blank" rel="noopener" class="btn btn-outline-gold">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          View Full FBLA Dress Code
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:1rem;">
+        <img src="wfbla.png" alt="Logo" style="height:36px;width:36px;object-fit:contain;border-radius:50%;" />
+        <span style="color:var(--white);font-weight:800;font-size:0.95rem;">Wheeler <span style="color:var(--gold);">FBLA</span></span>
+      </div>
+      <h4>Contact Us</h4>
+      <p>Wheeler High School FBLA<br>375 Holt Rd NE<br>Marietta, GA 30068<br><br>
+        <a href="mailto:fbla.wheelerhs@gmail.com" style="color:var(--gold-light);">fbla.wheelerhs@gmail.com</a>
+      </p>
+    </div>
+    <div class="footer-col">
+      <h4>Menu</h4>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="Resources.html">Resources</a>
+        <a href="aistudytool.html">AI Study Tool</a>
+        <a href="Photos.html">Photos</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Connect</h4>
+      <p style="margin-bottom:1rem;font-size:0.83rem;">Follow us on social media to stay up-to-date with meetings, events, and chapter news.</p>
+      <div class="footer-social">
+        <a href="mailto:fbla.wheelerhs@gmail.com" class="social-btn" aria-label="Email">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        </a>
+        <a href="#" class="social-btn" aria-label="TikTok">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.19 8.19 0 0 0 4.79 1.54V6.79a4.85 4.85 0 0 1-1.02-.1z"/></svg>
+        </a>
+        <a href="#" class="social-btn" aria-label="Instagram">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2025 Wheeler High School FBLA. All Rights Reserved.</div>
+</footer>
+
+<script src="animations.js"></script>
+</body>
+</html>

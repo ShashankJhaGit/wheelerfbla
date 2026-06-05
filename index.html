@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home — Wheeler High School FBLA</title>
+  <link rel="icon" href="wfbla.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── Leadership tier labels ─── */
+    .tier-label {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 2.25rem 0 1.25rem;
+    }
+    .tier-label-line { flex: 1; height: 1px; background: #e5e8ef; }
+    .tier-label-badge {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 0.3rem 0.9rem;
+      border-radius: 100px;
+      white-space: nowrap;
+    }
+    .tier-label-badge.core {
+      background: rgba(0,45,98,.08);
+      color: var(--navy);
+      border: 1px solid rgba(0,45,98,.18);
+    }
+    .tier-label-badge.support {
+      background: rgba(242,169,0,.1);
+      color: #b07a00;
+      border: 1px solid rgba(242,169,0,.3);
+    }
+
+    /* ── Teacher Sponsors ─── */
+    .sponsors-section {
+      background: var(--bg);
+      padding: 3rem 2rem;
+    }
+    .sponsor-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+      justify-content: center;
+      margin-top: 1.5rem;
+    }
+    .sponsor-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: var(--transition);
+      min-width: 220px;
+    }
+    .sponsor-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-3px);
+    }
+    .sponsor-icon {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(0,45,98,.08), rgba(0,45,98,.14));
+      border: 2px solid rgba(0,45,98,.12);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .sponsor-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--navy);
+    }
+    .sponsor-title {
+      font-size: 0.76rem;
+      color: var(--text-light);
+      font-weight: 500;
+      margin-top: 0.15rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════════════════════════ -->
+<nav class="navbar">
+  <a class="navbar-brand" href="index.html">
+    <img src="wfbla.png" alt="Wheeler FBLA Logo" />
+    <span class="brand-text">Wheeler <span>FBLA</span></span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="active">Home</a>
+    <a href="Resources.html">Resources</a>
+    <a href="aistudytool.html">AI Study Tool</a>
+    <a href="Photos.html">Photos</a>
+  </div>
+  <button class="hamburger" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="mobile-menu">
+    <a href="index.html" class="active">Home</a>
+    <a href="Resources.html">Resources</a>
+    <a href="aistudytool.html">AI Study Tool</a>
+    <a href="Photos.html">Photos</a>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════════════════ -->
+<section class="hero">
+  <div style="position:absolute;bottom:-80px;left:-80px;width:300px;height:300px;border:1px solid rgba(242,169,0,.07);border-radius:50%;pointer-events:none;"></div>
+  <div style="position:absolute;top:20%;right:10%;width:180px;height:180px;border:1px solid rgba(255,255,255,.05);border-radius:50%;pointer-events:none;"></div>
+  <div class="container hero-inner stagger-children">
+    <div class="hero-eyebrow">
+      <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="#F2A900"/></svg>
+      Future Business Leaders of America
+    </div>
+    <h1>About Wheeler FBLA</h1>
+    <div class="hero-accent-line"></div>
+    <p>
+      Wheeler High School's FBLA (Future Business Leaders of America) is a student-led organization
+      that empowers future leaders through business education, leadership development, and community
+      involvement. From state competitions to community projects, our chapter is dedicated to helping
+      students grow their professional skills and make lasting memories.
+    </p>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:2rem;">
+      <a href="Resources.html" class="btn btn-gold">Explore Resources</a>
+      <a href="#leadership" class="btn btn-outline-gold">Meet Our Officers</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     STATS BAR
+══════════════════════════════════════════════════════════ -->
+<div style="background:var(--white);border-bottom:1px solid #eef0f3;">
+  <div class="container" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0;max-width:900px;">
+    <div class="reveal" style="text-align:center;padding:1.6rem 1rem;border-right:1px solid #eef0f3;">
+      <div style="font-size:2rem;font-weight:900;color:var(--navy);">100+</div>
+      <div style="font-size:0.78rem;font-weight:600;color:var(--text-light);letter-spacing:.5px;text-transform:uppercase;">Active Members</div>
+    </div>
+    <div class="reveal reveal-delay-1" style="text-align:center;padding:1.6rem 1rem;border-right:1px solid #eef0f3;">
+      <div style="font-size:2rem;font-weight:900;color:var(--navy);">70+</div>
+      <div style="font-size:0.78rem;font-weight:600;color:var(--text-light);letter-spacing:.5px;text-transform:uppercase;">Competitive Events</div>
+    </div>
+    <div class="reveal reveal-delay-2" style="text-align:center;padding:1.6rem 1rem;border-right:1px solid #eef0f3;">
+      <div style="font-size:2rem;font-weight:900;color:var(--navy);">Gold</div>
+      <div style="font-size:0.78rem;font-weight:600;color:var(--text-light);letter-spacing:.5px;text-transform:uppercase;">Chapter</div>
+    </div>
+    <div class="reveal reveal-delay-3" style="text-align:center;padding:1.6rem 1rem;">
+      <div style="font-size:2rem;font-weight:900;color:var(--navy);">Weekly</div>
+      <div style="font-size:0.78rem;font-weight:600;color:var(--text-light);letter-spacing:.5px;text-transform:uppercase;">Meetings on Wed @ 3:30pm</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     UPCOMING EVENTS / CALENDAR
+══════════════════════════════════════════════════════════ -->
+<section class="section" style="background:var(--bg);">
+  <div class="container">
+    <h2 class="section-title reveal">Upcoming <span>Events</span></h2>
+    <span class="title-underline reveal"></span>
+    <p class="reveal" style="text-align:center;color:var(--text-light);max-width:520px;margin:0 auto 2rem;font-size:0.9rem;">
+      FBLA meetings are held every Wednesday at 3:30 PM. Stay up to date with our chapter's schedule below.
+    </p>
+    <div class="calendar-wrapper reveal" id="fblaCalendar">
+      <div class="calendar-header">
+        <button class="cal-nav-btn" id="calPrev" aria-label="Previous month">&#8249;</button>
+        <h3 id="calMonthLabel">Loading…</h3>
+        <button class="cal-nav-btn" id="calNext" aria-label="Next month">&#8250;</button>
+      </div>
+      <div class="calendar-grid">
+        <div class="cal-days-header">
+          <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span>
+          <span>Thu</span><span>Fri</span><span>Sat</span>
+        </div>
+        <div class="cal-cells" id="calCells"></div>
+      </div>
+    </div>
+    <div class="reveal" style="display:flex;align-items:center;gap:0.6rem;justify-content:center;margin-top:1.25rem;">
+      <div style="width:12px;height:12px;border-radius:3px;background:linear-gradient(135deg,var(--gold),var(--gold-light));"></div>
+      <span style="font-size:0.8rem;color:var(--text-light);font-weight:600;">Weekly FBLA Meeting — Every Wednesday @ 3:30 PM</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     LEADERSHIP
+══════════════════════════════════════════════════════════ -->
+<section class="section" id="leadership" style="background:var(--white);">
+  <div class="container">
+    <h2 class="section-title reveal">FBLA <span>Leadership</span></h2>
+    <span class="title-underline reveal"></span>
+    <p class="reveal" style="text-align:center;color:var(--text-light);max-width:520px;margin:0 auto 1rem;font-size:0.9rem;">
+      Meet the dedicated officers who lead Wheeler FBLA. Click any profile to learn more about their role and responsibilities.
+    </p>
+
+    <!-- ── CORE LEADERSHIP ── -->
+    <div class="tier-label reveal">
+      <div class="tier-label-line"></div>
+      <span class="tier-label-badge core">⭐ Core Leadership</span>
+      <div class="tier-label-line"></div>
+    </div>
+
+    <div class="leadership-grid">
+
+      <div class="profile-card reveal" data-key="state_officer">
+        <div class="profile-avatar">
+          <img src="state_officer.png" alt="State Officer" onerror="this.style.display='none'" />
+        </div>
+        <div class="profile-name">State Officer</div>
+        <div class="profile-role">State Officer</div>
+      </div>
+
+      <div class="profile-card reveal reveal-delay-1" data-key="co_president_1">
+        <div class="profile-avatar">
+          <img src="co_president_1.png" alt="Co-President" onerror="this.style.display='none'" />
+        </div>
+        <div class="profile-name">Co-President</div>
+        <div class="profile-role">Co-President</div>
+      </div>
+
+      <div class="profile-card reveal reveal-delay-2" data-key="co_president_2">
+        <div class="profile-avatar">
+          <img src="co_president_2.png" alt="Co-President" onerror="this.style.display='none'" />
+        </div>
+        <div class="profile-name">Co-President</div>
+        <div class="profile-role">Co-President</div>
+      </div>
+
+      <div class="profile-card reveal reveal-delay-3" data-key="vice_president">
+        <div class="profile-avatar">
+          <img src="vice_president.png" alt="Vice President" onerror="this.style.display='none'" />
+        </div>
+        <div class="profile-name">Vice President</div>
+        <div class="profile-role">Vice President</div>
+      </div>
+
+      <div class="profile-card reveal reveal-delay-4" data-key="treasurer">
+        <div class="profile-avatar">
+          <img src="treasurer.png" alt="Treasurer" onerror="this.style.display='none'" />
+        </div>
+        <div class="profile-name">Treasurer</div>
+        <div class="profile-role">Treasurer</div>
+      </div>
+
+      <div class="profile-card reveal" data-key="secretary">
+        <div class="profile-avatar">
+          <img src="secretary.png" alt="Secretary" onerror="this.style.display='none'" />
+        </div>
+        <div class="profile-name">Secretary</div>
+        <div class="profile-role">Secretary</div>
+      </div>
+
+      <div class="profile-card reveal reveal-delay-1" data-key="historian">
+        <div class="profile-avatar">
+          <img src="historian.png" alt="Historian" onerror="this.style.display='none'" />
+        </div>
+        <div class="profile-name">Historian</div>
+        <div class="profile-role">Historian</div>
+      </div>
+
+      <div class="profile-card reveal reveal-delay-2" data-key="ce_director_head">
+        <div class="profile-avatar">
+          <img src="ce_director_head.png" alt="Competitive Events Director" onerror="this.style.display='none'" />
+        </div>
+        <div class="profile-name">Competitive Events Dir.</div>
+        <div class="profile-role">CE Director</div>
+      </div>
+
+      <div class="profile-card reveal reveal-delay-3" data-key="reporter">
+        <div class="profile-avatar">
+          <img src="reporter.png" alt="Reporter" onerror="this.style.display='none'" />
+        </div>
+        <div class="profile-name">Reporter</div>
+        <div class="profile-role">Reporter</div>
+      </div>
+
+    </div>
+
+    <!-- ── SUPPORT LEADERSHIP ── -->
+    <div class="tier-label reveal">
+      <div class="tier-label-line"></div>
+      <span class="tier-label-badge support">🤝 Support Leadership</span>
+      <div class="tier-label-line"></div>
+    </div>
+
+    <div class="leadership-grid">
+
+      <div class="profile-card reveal" data-key="programs_director">
+        <div class="profile-avatar">
+          <img src="programs_director.png" alt="Programs Director" onerror="this.style.display='none'" />
+        </div>
+        <div class="profile-name">Programs Dir.</div>
+        <div class="profile-role">Programs Director</div>
+      </div>
+
+      <div class="profile-card reveal reveal-delay-1" data-key="fundraising_director">
+        <div class="profile-avatar">
+          <img src="fundraising_director.png" alt="Fundraising Director" onerror="this.style.display='none'" />
+        </div>
+        <div class="profile-name">Fundraising Dir.</div>
+        <div class="profile-role">Fundraising Director</div>
+      </div>
+
+      <div class="profile-card reveal reveal-delay-2" data-key="ce_engagement_director">
+        <div class="profile-avatar">
+          <img src="ce_engagement_director.png" alt="Community Engagement Director" onerror="this.style.display='none'" />
+        </div>
+        <div class="profile-name">Community Engagement Dir.</div>
+        <div class="profile-role">CE Director</div>
+      </div>
+
+      <div class="profile-card reveal reveal-delay-3" data-key="ce_coordinator_1">
+        <div class="profile-avatar">
+          <img src="ce_coordinator_1.png" alt="Competitive Events Coordinator" onerror="this.style.display='none'" />
+        </div>
+        <div class="profile-name">CE Coordinator</div>
+        <div class="profile-role">CE Coordinator</div>
+      </div>
+
+      <div class="profile-card reveal reveal-delay-4" data-key="ce_coordinator_2">
+        <div class="profile-avatar">
+          <img src="ce_coordinator_2.png" alt="Competitive Events Coordinator" onerror="this.style.display='none'" />
+        </div>
+        <div class="profile-name">CE Coordinator</div>
+        <div class="profile-role">CE Coordinator</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     TEACHER SPONSORS
+══════════════════════════════════════════════════════════ -->
+<section class="sponsors-section">
+  <div class="container">
+    <h2 class="section-title reveal">Teacher <span>Sponsors</span></h2>
+    <span class="title-underline reveal"></span>
+    <p class="reveal" style="text-align:center;color:var(--text-light);max-width:480px;margin:0 auto 0;font-size:0.9rem;">
+      Our chapter is guided by these dedicated educators who make everything possible.
+    </p>
+    <div class="sponsor-cards">
+      <div class="sponsor-card reveal">
+        <div class="sponsor-icon">👩‍🏫</div>
+        <div>
+          <div class="sponsor-name">Sarah Lyons</div>
+          <div class="sponsor-title">Teacher Sponsor</div>
+        </div>
+      </div>
+      <div class="sponsor-card reveal reveal-delay-1">
+        <div class="sponsor-icon">👩‍🏫</div>
+        <div>
+          <div class="sponsor-name">Melissa Rogers</div>
+          <div class="sponsor-title">Teacher Sponsor</div>
+        </div>
+      </div>
+      <div class="sponsor-card reveal reveal-delay-2">
+        <div class="sponsor-icon">👩‍🏫</div>
+        <div>
+          <div class="sponsor-name">Carmen Wiggins</div>
+          <div class="sponsor-title">Teacher Sponsor</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     PROFILE MODAL
+══════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="profileModal" role="dialog" aria-modal="true">
+  <div class="modal-box">
+    <div class="modal-header">
+      <button class="modal-close" aria-label="Close modal">&#10005;</button>
+      <div class="modal-avatar">
+        <img id="modalImg" src="" alt="" />
+      </div>
+      <div id="modalName" class="modal-name"></div>
+      <div id="modalRole" class="modal-role"></div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-bio-label">Biography</div>
+      <p class="modal-bio" id="modalBio"></p>
+      <div class="modal-duties">
+        <h4>Key Responsibilities</h4>
+        <ul id="modalDuties"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:1rem;">
+        <img src="wfbla.png" alt="Logo" style="height:36px;width:36px;object-fit:contain;border-radius:50%;" />
+        <span style="color:var(--white);font-weight:800;font-size:0.95rem;">Wheeler <span style="color:var(--gold);">FBLA</span></span>
+      </div>
+      <h4>Contact Us</h4>
+      <p>Wheeler High School FBLA<br>375 Holt Rd NE<br>Marietta, GA 30068<br><br>
+        <a href="mailto:fbla.wheelerhs@gmail.com" style="color:var(--gold-light);">fbla.wheelerhs@gmail.com</a>
+      </p>
+    </div>
+    <div class="footer-col">
+      <h4>Menu</h4>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="Resources.html">Resources</a>
+        <a href="aistudytool.html">AI Study Tool</a>
+        <a href="Photos.html">Photos</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Connect</h4>
+      <p style="margin-bottom:1rem;font-size:0.83rem;">Follow us on social media to stay up-to-date with meetings, events, and chapter news.</p>
+      <div class="footer-social">
+        <a href="mailto:fbla.wheelerhs@gmail.com" class="social-btn" aria-label="Email">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        </a>
+        <a href="#" class="social-btn" aria-label="TikTok">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.19 8.19 0 0 0 4.79 1.54V6.79a4.85 4.85 0 0 1-1.02-.1z"/></svg>
+        </a>
+        <a href="#" class="social-btn" aria-label="Instagram">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2025 Wheeler High School FBLA. All Rights Reserved.</div>
+</footer>
+
+<script src="animations.js"></script>
+</body>
+</html>

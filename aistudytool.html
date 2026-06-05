@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>AI Study Tool — Wheeler FBLA</title>
+  <link rel="icon" href="wfbla.png"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <!-- PDF.js — fully client-side PDF text extraction, no API key needed -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <style>
+    /* ════════════════════════════════════════════════════
+       AI STUDY TOOL — PAGE-SCOPED STYLES
+    ════════════════════════════════════════════════════ */
+
+    /* State panels */
+    .ai-panel {
+      display: none;
+    }
+    .ai-panel.active {
+      display: block;
+      animation: panelFadeIn 0.35s ease both;
+    }
+    @keyframes panelFadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Page canvas */
+    #aiApp {
+      background: var(--bg);
+      min-height: calc(100vh - 68px);
+      padding: 3rem 1.5rem 4rem;
+      flex: 1 0 auto;
+    }
+    .ai-container {
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    /* ── UPLOAD PANEL ─────────────────────────────────── */
+    .upload-hero {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    .upload-hero h1 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      color: var(--navy);
+      font-weight: 900;
+      margin-bottom: 0.4rem;
+    }
+    .upload-hero h1 span { color: var(--gold); }
+    .upload-hero p {
+      color: var(--text-light);
+      font-size: 0.95rem;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    .dropzone {
+      border: 2.5px dashed rgba(0,45,98,.3);
+      border-radius: 18px;
+      background: var(--white);
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      margin-bottom: 1.5rem;
+      position: relative;
+      box-shadow: 0 2px 16px rgba(0,45,98,.07);
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--gold);
+      background: rgba(242,169,0,.03);
+      box-shadow: 0 8px 32px rgba(242,169,0,.15);
+    }
+    .dropzone-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .dropzone h3 { color: var(--navy); font-size: 1.1rem; margin-bottom: 0.5rem; }
+    .dropzone p  { color: var(--text-light); font-size: 0.85rem; }
+
+    .dz-file-input { display: none; }
+
+    .dz-browse-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--navy);
+      color: var(--white);
+      padding: 0.6rem 1.4rem;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: all 0.22s ease;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .dz-browse-btn:hover { background: var(--navy-mid); transform: translateY(-1px); }
+
+    .dz-filename {
+      margin-top: 0.75rem;
+      font-size: 0.82rem;
+      color: var(--gold);
+      font-weight: 700;
+      min-height: 1.2em;
+    }
+
+    /* Divider */
+    .or-divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      color: var(--text-light);
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+    .or-divider::before, .or-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e5e8ef;
+    }
+
+    /* Text paste area */
+    .paste-area {
+      width: 100%;
+      border: 1.5px solid #e0e4ea;
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.87rem;
+      color: var(--text-dark);
+      background: var(--white);
+      resize: vertical;
+      min-height: 140px;
+      transition: border-color 0.22s ease, box-shadow 0.22s ease;
+      outline: none;
+      box-shadow: 0 1px 6px rgba(0,45,98,.06);
+    }
+    .paste-area:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(242,169,0,.12);
+    }
+
+    /* Generate btn */
+    .generate-btn {
+      width: 100%;
+      padding: 1rem;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      color: var(--navy);
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      box-shadow: 0 6px 20px rgba(242,169,0,.35);
+      transition: all 0.25s ease;
+      font-family: 'Montserrat', sans-serif;
+      letter-spacing: 0.2px;
+    }
+    .generate-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(242,169,0,.45);
+      filter: brightness(1.04);
+    }
+    .generate-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* Loading panel centers content */
+    #loadingPanel.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      text-align: center;
+      gap: 1.5rem;
+    }
+    .spinner-ring {
+      width: 64px; height: 64px;
+      border: 5px solid rgba(0,45,98,.12);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-status {
+      color: var(--navy);
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .loading-sub {
+      color: var(--text-light);
+      font-size: 0.83rem;
+      max-width: 380px;
+    }
+    .loading-progress-track {
+      width: 280px; height: 4px;
+      background: #e0e4ea;
+      border-radius: 100px;
+      overflow: hidden;
+    }
+    .loading-progress-fill {
+      height: 100%;
+      border-radius: 100px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light));
+      animation: progress-wave 2s ease-in-out infinite;
+    }
+    @keyframes progress-wave {
+      0%   { width: 10%; }
+      50%  { width: 85%; }
+      100% { width: 10%; }
+    }
+
+    /* ── QUIZ PANEL ───────────────────────────────────── */
+    .quiz-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--white);
+      border-radius: 14px;
+      padding: 1rem 1.5rem;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 2rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .quiz-topbar-left h2 { font-size: 1rem; color: var(--navy); font-weight: 800; margin-bottom: 0.1rem; }
+    .quiz-topbar-left p  { font-size: 0.78rem; color: var(--text-light); }
+
+    .timer-display {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--navy);
+      color: var(--white);
+      padding: 0.55rem 1.1rem;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1px;
+      box-shadow: var(--shadow-sm);
+      transition: background 0.4s ease;
+    }
+    .timer-display.warning { background: #c0392b; animation: timer-pulse 1s ease-in-out infinite; }
+    @keyframes timer-pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.7; }
+    }
+
+    /* Question card */
+    .question-card {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 1.6rem 1.75rem;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 1.25rem;
+      border: 1.5px solid #eef0f4;
+      transition: border-color 0.22s ease, box-shadow 0.22s ease;
+    }
+    .question-card:hover { border-color: rgba(242,169,0,.3); box-shadow: var(--shadow-md); }
+
+    .q-number {
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.6rem;
+    }
+    .q-text {
+      font-size: 0.95rem;
+      color: var(--navy);
+      font-weight: 700;
+      line-height: 1.5;
+      margin-bottom: 1.1rem;
+    }
+
+    /* Options */
+    .options-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .option-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      border: 1.5px solid #e8ebf2;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.88rem;
+      color: var(--text-dark);
+      line-height: 1.45;
+      background: var(--white);
+    }
+    .option-label:hover { border-color: var(--gold); background: rgba(242,169,0,.04); }
+    .option-label input[type="radio"] { display: none; }
+
+    .option-letter {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: #f0f2f7;
+      color: var(--navy);
+      font-size: 0.75rem;
+      font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+      transition: all 0.2s ease;
+    }
+    .option-label:has(input:checked) {
+      border-color: var(--navy);
+      background: rgba(0,45,98,.05);
+    }
+    .option-label:has(input:checked) .option-letter {
+      background: var(--navy);
+      color: var(--white);
+    }
+
+    /* Results states */
+    .option-label.correct {
+      border-color: #27ae60;
+      background: rgba(39,174,96,.08);
+    }
+    .option-label.correct .option-letter { background: #27ae60; color: var(--white); }
+
+    .option-label.wrong {
+      border-color: #e74c3c;
+      background: rgba(231,76,60,.08);
+    }
+    .option-label.wrong .option-letter { background: #e74c3c; color: var(--white); }
+
+    /* Explanation box */
+    .explanation-box {
+      margin-top: 1rem;
+      background: linear-gradient(135deg, rgba(0,45,98,.04), rgba(0,45,98,.08));
+      border: 1px solid rgba(0,45,98,.14);
+      border-left: 4px solid var(--gold);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      display: none;
+    }
+    .explanation-box.show { display: block; animation: fadeInUp 0.4s ease both; }
+    .explanation-box h5 {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--navy);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .explanation-box p { font-size: 0.85rem; color: var(--text-mid); line-height: 1.7; }
+
+    /* Submit button */
+    .submit-quiz-btn {
+      width: 100%;
+      padding: 1.05rem;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, var(--navy-deep), var(--navy));
+      color: var(--white);
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      box-shadow: 0 6px 20px rgba(0,45,98,.25);
+      transition: all 0.25s ease;
+      font-family: 'Montserrat', sans-serif;
+      letter-spacing: 0.2px;
+    }
+    .submit-quiz-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0,45,98,.35);
+      background: linear-gradient(135deg, #001a3a, var(--navy-deep));
+    }
+
+    /* ── RESULTS PANEL ────────────────────────────────── */
+    .results-hero {
+      text-align: center;
+      background: linear-gradient(135deg, var(--navy-deep), var(--navy));
+      border-radius: 20px;
+      padding: 2.5rem 2rem;
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .results-hero::before {
+      content: '';
+      position: absolute;
+      top: -50px; right: -50px;
+      width: 200px; height: 200px;
+      border: 1px solid rgba(242,169,0,.1);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .score-ring-wrap { position: relative; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1.25rem; }
+    .score-ring {
+      width: 110px; height: 110px;
+      transform: rotate(-90deg);
+    }
+    .score-ring-bg  { fill: none; stroke: rgba(255,255,255,.12); stroke-width: 8; }
+    .score-ring-fill {
+      fill: none;
+      stroke: var(--gold);
+      stroke-width: 8;
+      stroke-linecap: round;
+      stroke-dasharray: 314;
+      stroke-dashoffset: 314;
+      transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1);
+    }
+    .score-ring-text {
+      position: absolute;
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: var(--white);
+    }
+    .results-grade {
+      color: var(--white);
+      font-size: 1.5rem;
+      font-weight: 900;
+      margin-bottom: 0.3rem;
+    }
+    .results-sub { color: rgba(255,255,255,.65); font-size: 0.88rem; }
+
+    .results-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+    .results-stat {
+      background: rgba(255,255,255,.08);
+      border-radius: 10px;
+      padding: 0.8rem 0.5rem;
+      text-align: center;
+    }
+    .results-stat-num { color: var(--gold-light); font-size: 1.4rem; font-weight: 900; }
+    .results-stat-label { color: rgba(255,255,255,.6); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.5px; margin-top: 0.15rem; }
+
+    /* Try again btn */
+    .try-again-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255,255,255,.12);
+      border: 1.5px solid rgba(255,255,255,.2);
+      color: var(--white);
+      padding: 0.65rem 1.5rem;
+      border-radius: 10px;
+      font-size: 0.87rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      margin-top: 1.4rem;
+      transition: all 0.22s ease;
+    }
+    .try-again-btn:hover { background: rgba(242,169,0,.25); border-color: rgba(242,169,0,.5); }
+
+    /* Results question cards */
+    .result-q-card {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 1.5rem 1.75rem;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 1.25rem;
+      border: 1.5px solid #eef0f4;
+    }
+    .result-q-card.correct-card { border-color: rgba(39,174,96,.3); }
+    .result-q-card.wrong-card   { border-color: rgba(231,76,60,.3); }
+
+    .result-q-status {
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .result-q-status.correct { color: #27ae60; }
+    .result-q-status.wrong   { color: #e74c3c; }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* PDF parse progress pill */
+    .pdf-progress {
+      display: none;
+      align-items: center;
+      gap: 0.65rem;
+      margin-top: 0.85rem;
+      background: rgba(0,45,98,.06);
+      border: 1px solid rgba(0,45,98,.12);
+      border-radius: 10px;
+      padding: 0.6rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--navy);
+    }
+    .pdf-progress.show { display: flex; }
+    .pdf-progress-bar-track {
+      flex: 1; height: 4px;
+      background: #e0e4ea;
+      border-radius: 100px;
+      overflow: hidden;
+    }
+    .pdf-progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light));
+      border-radius: 100px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+      .quiz-topbar { flex-direction: column; align-items: flex-start; }
+      .results-stats { grid-template-columns: repeat(2,1fr); }
+      .question-card { padding: 1.2rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ NAVBAR -->
+<nav class="navbar">
+  <a class="navbar-brand" href="index.html">
+    <img src="wfbla.png" alt="Wheeler FBLA Logo"/>
+    <span class="brand-text">Wheeler <span>FBLA</span></span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="Resources.html">Resources</a>
+    <a href="aistudytool.html" class="active">AI Study Tool</a>
+    <a href="Photos.html">Photos</a>
+  </div>
+  <button class="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+  <div class="mobile-menu">
+    <a href="index.html">Home</a>
+    <a href="Resources.html">Resources</a>
+    <a href="aistudytool.html" class="active">AI Study Tool</a>
+    <a href="Photos.html">Photos</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════ APP -->
+<div id="aiApp">
+  <div class="ai-container">
+
+    <!-- ── PANEL 1: UPLOAD ── -->
+    <div id="uploadPanel" class="ai-panel active">
+      <div class="upload-hero">
+        <div class="hero-eyebrow anim-fade-up" style="display:inline-flex;align-items:center;gap:.5rem;margin-bottom:1rem;">
+          <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="#F2A900"/></svg>
+          Local AI — No API Key Required
+        </div>
+        <h1 class="anim-fade-up delay-100">FBLA <span>AI Study Tool</span></h1>
+        <div class="hero-accent-line anim-scale-in delay-200" style="margin:.7rem auto 1rem;"></div>
+        <p class="anim-fade-up delay-300">
+          Upload your event rubric, study notes, or paste any text. Our local AI will generate a personalized 50-question practice test — timed at 50 minutes — entirely in your browser.
+        </p>
+      </div>
+
+      <!-- Dropzone -->
+      <div class="dropzone anim-fade-up delay-400" id="dropzone">
+        <span class="dropzone-icon">📄</span>
+        <h3>Drop your study file here</h3>
+        <p>Supports <strong>.pdf</strong>, <strong>.txt</strong>, and <strong>.md</strong> files up to 10MB</p>
+        <input type="file" class="dz-file-input" id="fileInput" accept=".txt,.md,.pdf"/>
+        <button class="dz-browse-btn" onclick="document.getElementById('fileInput').click()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Browse Files
+        </button>
+        <div class="dz-filename" id="dzFilename"></div>
+        <div class="pdf-progress" id="pdfProgress">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span id="pdfProgressLabel">Extracting PDF text...</span>
+          <div class="pdf-progress-bar-track"><div class="pdf-progress-bar-fill" id="pdfProgressBar"></div></div>
+        </div>
+      </div><!-- /.dropzone -->
+
+      <div class="or-divider anim-fade-up delay-400">or paste your study text below</div>
+
+      <textarea class="paste-area anim-fade-up delay-400" id="pasteArea"
+        placeholder="Paste your FBLA event rubric, study notes, or any topic content here...&#10;&#10;Example: Business Communication focuses on writing business letters, memos, emails, and reports with proper formatting..."></textarea>
+
+      <button class="generate-btn" id="generateBtn" onclick="startGeneration()" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Generate My Practice Test
+      </button>
+
+      <p style="text-align:center;font-size:0.76rem;color:var(--text-light);margin-top:0.85rem;">
+        🔒 100% local processing — your files never leave your browser. PDF text is extracted client-side via PDF.js.
+      </p>
+    </div><!-- /.uploadPanel -->
+
+    <!-- ── PANEL 2: LOADING ── -->
+    <div id="loadingPanel" class="ai-panel">
+      <div class="spinner-ring"></div>
+      <div class="loading-status" id="loadingStatus">Parsing your study materials...</div>
+      <div class="loading-sub" id="loadingSub">Extracting key concepts and generating questions. This takes just a moment.</div>
+      <div class="loading-progress-track">
+        <div class="loading-progress-fill" id="loadingBar"></div>
+      </div>
+    </div>
+
+    <!-- ── PANEL 3: QUIZ ── -->
+    <div id="quizPanel" class="ai-panel">
+      <div class="quiz-topbar">
+        <div class="quiz-topbar-left">
+          <h2>FBLA Practice Test</h2>
+          <p id="quizSubLabel">50 questions • Select the best answer</p>
+        </div>
+        <div class="timer-display" id="timerDisplay">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span id="timerText">50:00</span>
+        </div>
+      </div>
+
+      <div id="questionsContainer"></div>
+
+      <button class="submit-quiz-btn" id="submitBtn" onclick="submitQuiz()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Submit Test
+      </button>
+    </div>
+
+    <!-- ── PANEL 4: RESULTS ── -->
+    <div id="resultsPanel" class="ai-panel">
+      <div class="results-hero">
+        <div class="score-ring-wrap">
+          <svg class="score-ring" viewBox="0 0 110 110">
+            <circle class="score-ring-bg"   cx="55" cy="55" r="50"/>
+            <circle class="score-ring-fill" cx="55" cy="55" r="50" id="scoreRingFill"/>
+          </svg>
+          <div class="score-ring-text" id="scoreRingText">0%</div>
+        </div>
+        <div class="results-grade" id="resultsGrade">—</div>
+        <div class="results-sub"   id="resultsSub">—</div>
+        <div class="results-stats">
+          <div class="results-stat">
+            <div class="results-stat-num" id="statCorrect">—</div>
+            <div class="results-stat-label">Correct</div>
+          </div>
+          <div class="results-stat">
+            <div class="results-stat-num" id="statWrong">—</div>
+            <div class="results-stat-label">Incorrect</div>
+          </div>
+          <div class="results-stat">
+            <div class="results-stat-num" id="statTime">—</div>
+            <div class="results-stat-label">Time Used</div>
+          </div>
+        </div>
+        <button class="try-again-btn" onclick="resetTool()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.08"/></svg>
+          Try Another Topic
+        </button>
+      </div>
+
+      <div id="resultsBreakdown"></div>
+    </div>
+
+  </div><!-- /.ai-container -->
+</div><!-- /#aiApp -->
+
+<!-- ═══════════════════════════════════════════ FOOTER -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:1rem;">
+        <img src="wfbla.png" alt="Logo" style="height:36px;width:36px;object-fit:contain;border-radius:50%;"/>
+        <span style="color:var(--white);font-weight:800;font-size:0.95rem;">Wheeler <span style="color:var(--gold);">FBLA</span></span>
+      </div>
+      <h4>Contact Us</h4>
+      <p>Wheeler High School FBLA<br>375 Holt Rd NE<br>Marietta, GA 30068<br><br>
+        <a href="mailto:fbla.wheelerhs@gmail.com" style="color:var(--gold-light);">fbla.wheelerhs@gmail.com</a></p>
+    </div>
+    <div class="footer-col">
+      <h4>Menu</h4>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="Resources.html">Resources</a>
+        <a href="aistudytool.html">AI Study Tool</a>
+        <a href="Photos.html">Photos</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Connect</h4>
+      <p style="margin-bottom:1rem;font-size:0.83rem;">Follow us on social media to stay up-to-date with meetings, events, and chapter news.</p>
+      <div class="footer-social">
+        <a href="mailto:fbla.wheelerhs@gmail.com" class="social-btn" aria-label="Email">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        </a>
+        <a href="#" class="social-btn" aria-label="TikTok">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.19 8.19 0 0 0 4.79 1.54V6.79a4.85 4.85 0 0 1-1.02-.1z"/></svg>
+        </a>
+        <a href="#" class="social-btn" aria-label="Instagram">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">&#169; 2025 Wheeler High School FBLA. All Rights Reserved.</div>
+</footer>
+
+<script src="animations.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════
+   WHEELER FBLA — LOCAL AI STUDY TOOL ENGINE
+   100% client-side, zero external APIs
+═══════════════════════════════════════════════════════════ */
+
+/* ── STATE ─────────────────────────────────────────────── */
+let studyText  = '';
+let questions  = [];
+let timerInt   = null;
+let secsLeft   = 50 * 60;
+let secsUsed   = 0;
+let submitted  = false;
+
+/* ── PANEL TRANSITIONS ─────────────────────────────────── */
+function showPanel(id) {
+  document.querySelectorAll('.ai-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.body.style.overflow = '';
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+}
+
+/* ── INPUT HANDLING ────────────────────────────────────── */
+const pasteArea    = document.getElementById('pasteArea');
+const dzFilename   = document.getElementById('dzFilename');
+const genBtn       = document.getElementById('generateBtn');
+const dropzone     = document.getElementById('dropzone');
+const fileInput    = document.getElementById('fileInput');
+const pdfProgress  = document.getElementById('pdfProgress');
+const pdfProgBar   = document.getElementById('pdfProgressBar');
+const pdfProgLabel = document.getElementById('pdfProgressLabel');
+
+function checkEnableBtn() {
+  const hasText = pasteArea.value.trim().length > 20 || studyText.length > 20;
+  genBtn.disabled = !hasText;
+}
+
+pasteArea.addEventListener('input', checkEnableBtn);
+
+/* Configure PDF.js worker (uses the same CDN build, no extra server needed) */
+if (typeof pdfjsLib !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+async function extractPdfText(file) {
+  pdfProgress.classList.add('show');
+  pdfProgBar.style.width = '0%';
+  pdfProgLabel.textContent = 'Reading PDF...';
+
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const totalPages = pdf.numPages;
+  let fullText = '';
+
+  for (let p = 1; p <= totalPages; p++) {
+    const page    = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    const pageText = content.items.map(item => item.str).join(' ');
+    fullText += pageText + '\n';
+
+    const pct = Math.round((p / totalPages) * 100);
+    pdfProgBar.style.width = pct + '%';
+    pdfProgLabel.textContent = `Extracting page ${p} of ${totalPages}...`;
+  }
+
+  pdfProgBar.style.width = '100%';
+  pdfProgLabel.textContent = `✓ ${totalPages} page${totalPages > 1 ? 's' : ''} extracted`;
+  setTimeout(() => pdfProgress.classList.remove('show'), 2200);
+  return fullText.trim();
+}
+
+async function handleFile(file) {
+  if (!file) return;
+
+  dzFilename.textContent = '';
+  genBtn.disabled = true;
+
+  if (file.name.toLowerCase().endsWith('.pdf')) {
+    dzFilename.textContent = '📄 ' + file.name + ' — parsing...';
+    try {
+      studyText = await extractPdfText(file);
+      if (studyText.length < 20) throw new Error('No extractable text found');
+      pasteArea.value = studyText;
+      dzFilename.textContent = '✓ ' + file.name + ' — ' + studyText.split(/\s+/).length + ' words extracted';
+      checkEnableBtn();
+    } catch (err) {
+      dzFilename.textContent = '⚠ Could not extract text from this PDF. Try copy-pasting the content instead.';
+      pdfProgress.classList.remove('show');
+    }
+  } else {
+    // Plain text / markdown
+    const reader = new FileReader();
+    reader.onload = e => {
+      studyText = e.target.result;
+      pasteArea.value = studyText;
+      dzFilename.textContent = '✓ ' + file.name + ' loaded';
+      checkEnableBtn();
+    };
+    reader.readAsText(file);
+  }
+}
+
+fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+
+// Drag-and-drop — now accepts PDFs too
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const name = file.name.toLowerCase();
+  if (name.endsWith('.txt') || name.endsWith('.md') || name.endsWith('.pdf')) {
+    handleFile(file);
+  } else {
+    dzFilename.textContent = '⚠ Unsupported file type. Please use .pdf, .txt, or .md';
+  }
+});
+
+/* ═══════════════════════════════════════════════════════
+   LOCAL NLP ENGINE — Pure JavaScript, no external deps
+═══════════════════════════════════════════════════════ */
+
+/* ── Text preprocessing ────────────────────────────────── */
+function cleanText(t) {
+  return t.replace(/\s+/g, ' ').replace(/[^\w\s.,;:!?()'"-]/g, ' ').trim();
+}
+
+function tokenize(t) {
+  return t.toLowerCase().match(/\b[a-z][a-z'-]{2,}\b/g) || [];
+}
+
+const STOPWORDS = new Set([
+  'the','a','an','and','or','but','in','on','at','to','for','of','with',
+  'is','are','was','were','be','been','being','have','has','had','do','does',
+  'did','will','would','shall','should','may','might','must','can','could',
+  'this','that','these','those','it','its','they','their','there','here',
+  'from','by','as','not','no','so','if','then','than','more','most','also',
+  'into','about','which','what','when','where','how','who','all','each',
+  'both','few','many','some','such','other','than','too','very','just',
+  'your','you','our','we','us','my','i','he','she','they','them'
+]);
+
+function extractKeywords(text, topN = 80) {
+  const tokens = tokenize(text);
+  const freq = {};
+  tokens.forEach(t => {
+    if (!STOPWORDS.has(t) && t.length > 3) freq[t] = (freq[t] || 0) + 1;
+  });
+  return Object.entries(freq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, topN)
+    .map(([w]) => w);
+}
+
+function extractSentences(text) {
+  return text.match(/[^.!?]+[.!?]+/g)
+    ?.map(s => s.trim())
+    .filter(s => s.length > 40 && s.length < 280) || [];
+}
+
+function findSentenceForKeyword(sentences, keyword) {
+  return sentences.find(s => s.toLowerCase().includes(keyword)) || null;
+}
+
+/* ── Question Generator ────────────────────────────────── */
+
+// Template banks — 25 stems so across 50 questions each repeats at most twice with different keywords
+const QUESTION_TEMPLATES = [
+  kw => `What is the primary purpose of ${kw} in a business context?`,
+  kw => `Which of the following best describes the role of ${kw}?`,
+  kw => `When preparing for a competitive event involving ${kw}, which approach is most effective?`,
+  kw => `According to FBLA guidelines, how should ${kw} be handled professionally?`,
+  kw => `Which statement about ${kw} is most accurate?`,
+  kw => `In a professional business setting, ${kw} is best defined as:`,
+  kw => `What distinguishes effective use of ${kw} from ineffective use?`,
+  kw => `A key component of ${kw} in competitive business events is:`,
+  kw => `Which of the following correctly applies the concept of ${kw}?`,
+  kw => `In FBLA competitive events, ${kw} contributes most directly to:`,
+  kw => `A judge evaluating ${kw} would most likely reward which of the following?`,
+  kw => `Which best practice applies when incorporating ${kw} into a presentation?`,
+  kw => `How does ${kw} affect the overall quality of a business submission?`,
+  kw => `Which scenario demonstrates the strongest understanding of ${kw}?`,
+  kw => `What is the most critical consideration when applying ${kw} professionally?`,
+  kw => `Which outcome is most likely when ${kw} is properly implemented?`,
+  kw => `In the context of FBLA competition rubrics, ${kw} is evaluated primarily by:`,
+  kw => `Which approach to ${kw} best aligns with professional business standards?`,
+  kw => `What common mistake should be avoided when dealing with ${kw}?`,
+  kw => `Which element of ${kw} is most emphasized in business leadership development?`,
+  kw => `How should a competitor demonstrate mastery of ${kw} during a presentation?`,
+  kw => `Which of the following represents a high-scoring application of ${kw}?`,
+  kw => `What role does ${kw} play in building professional credibility?`,
+  kw => `Which characteristic of ${kw} is most valued in competitive FBLA settings?`,
+  kw => `Effective integration of ${kw} in a business plan primarily involves:`,
+];
+
+const DISTRACTOR_POOLS = [
+  ['Maximizing personal profit regardless of ethics','Avoiding all written communication','Delegating all decisions to others','Ignoring feedback from judges'],
+  ['Using informal language in all settings','Arriving late to demonstrate confidence','Submitting work without proofreading','Avoiding eye contact during presentations'],
+  ['Reading directly from prepared notes','Speaking as quickly as possible','Focusing solely on visual aids','Memorizing a script word-for-word'],
+  ['Wearing casual attire to stand out','Skipping the introduction to save time','Repeating the same point multiple times','Addressing only part of the prompt'],
+  ['Ignoring the rubric criteria','Using jargon unfamiliar to judges','Presenting without a clear structure','Relying entirely on emotion'],
+  ['Underestimating the importance of research','Avoiding data and evidence','Speaking without a conclusion','Failing to address the audience'],
+  ['Prioritizing quantity over quality','Omitting citations for key claims','Rushing through the conclusion','Avoiding counterarguments'],
+  ['Using passive voice exclusively','Neglecting the opening hook','Overloading slides with text','Ignoring time limits'],
+  ['Skipping rehearsal entirely','Avoiding audience interaction','Using a monotone delivery','Overlooking judge feedback'],
+  ['Submitting incomplete work','Exceeding allotted time limits','Failing to cite sources','Ignoring formatting requirements'],
+  ['Presenting irrelevant information','Lacking a clear call to action','Using outdated statistics','Omitting the executive summary'],
+  ['Speaking below the audience level','Ignoring body language cues','Failing to make eye contact','Relying solely on memorization'],
+  ['Avoiding specific examples','Generalizing without support','Overlooking counterarguments','Presenting only one perspective'],
+  ['Neglecting transitions between points','Failing to connect ideas logically','Jumping between unrelated topics','Skipping the problem statement'],
+  ['Discouraging audience participation','Monopolizing speaking time','Avoiding visual support entirely','Ignoring time management'],
+  ['Focusing on irrelevant details','Omitting supporting evidence','Failing to address the prompt','Using inappropriate examples'],
+  ['Rushing through key definitions','Skipping critical analysis','Failing to distinguish fact from opinion','Avoiding professional terminology'],
+  ['Neglecting audience needs','Overusing filler words','Presenting without preparation','Ignoring feedback cues'],
+  ['Using inconsistent formatting','Failing to proofread submissions','Misrepresenting data visually','Omitting page numbers or headers'],
+  ['Treating all stakeholders identically','Ignoring ethical considerations','Avoiding conflict resolution strategies','Overlooking team dynamics'],
+  ['Failing to identify the target market','Skipping competitive analysis','Omitting financial projections','Overlooking risk assessment'],
+  ['Ignoring legal requirements','Avoiding sustainability considerations','Overlooking market trends','Failing to define success metrics'],
+  ['Presenting without a conclusion','Avoiding a summary of key points','Failing to reinforce the main idea','Omitting the recommendation section'],
+  ['Skipping the agenda entirely','Failing to introduce team members','Omitting time allocations','Avoiding Q&A preparation'],
+  ['Ignoring professional dress standards','Failing to greet judges appropriately','Overlooking room setup','Avoiding pre-presentation preparation'],
+];
+
+function generateCorrectAnswer(keyword, contextSentence) {
+  if (contextSentence) {
+    const words = contextSentence.replace(/[^a-zA-Z\s]/g,'').split(' ').filter(w => w.length > 3);
+    if (words.length > 5) {
+      const start = Math.floor(Math.random() * Math.max(1, words.length - 8));
+      const chunk = words.slice(start, start + 7).join(' ');
+      return `Emphasizing ${chunk.toLowerCase()} as a core professional standard`;
+    }
+  }
+  const correctTemplates = [
+    `Applying ${keyword} systematically to meet professional and competitive standards`,
+    `Using ${keyword} to demonstrate clarity, structure, and business acumen`,
+    `Integrating ${keyword} with proper formatting, research, and audience awareness`,
+    `Ensuring ${keyword} reflects FBLA's standards of professionalism and ethics`,
+    `Leveraging ${keyword} to strengthen the overall quality and impact of the presentation`,
+    `Demonstrating a thorough command of ${keyword} through precise and well-organized delivery`,
+    `Aligning ${keyword} with the judging rubric to maximize competitive score potential`,
+    `Applying ${keyword} in a way that reflects both technical knowledge and professional maturity`,
+    `Using ${keyword} consistently throughout the presentation to reinforce credibility and focus`,
+    `Incorporating ${keyword} strategically to address the prompt, support arguments, and engage judges`,
+  ];
+  return correctTemplates[Math.floor(Math.random() * correctTemplates.length)];
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function generateQuestions(text) {
+  const cleaned   = cleanText(text);
+  const keywords  = extractKeywords(cleaned, 80);
+  const sentences = extractSentences(cleaned);
+  const usedKws   = new Set();
+  const qs        = [];
+  const LETTERS   = ['A','B','C','D'];
+
+  for (let i = 0; i < 50 && qs.length < 50; i++) {
+    const kwIdx  = i % keywords.length;
+    let keyword  = keywords[kwIdx] || 'professional communication';
+    // avoid exact duplicates
+    if (usedKws.has(keyword)) {
+      keyword = keywords[(kwIdx + 3) % keywords.length] || keyword;
+    }
+    usedKws.add(keyword);
+
+    const templateFn = QUESTION_TEMPLATES[i % QUESTION_TEMPLATES.length];
+    const stem       = templateFn(keyword);
+    const contextSen = findSentenceForKeyword(sentences, keyword);
+    const correct    = generateCorrectAnswer(keyword, contextSen);
+
+    // Pick 3 distractors from pool, avoid repeating correct answer text
+    const pool = shuffle(DISTRACTOR_POOLS[i % DISTRACTOR_POOLS.length]);
+    const distractors = pool.slice(0, 3);
+
+    const rawOptions = shuffle([correct, ...distractors]);
+    const options = rawOptions.map((text, idx) => ({ letter: LETTERS[idx], text }));
+    const correctLetter = options.find(o => o.text === correct).letter;
+
+    qs.push({
+      id: i,
+      stem,
+      keyword,
+      options,
+      correctLetter,
+      contextSentence: contextSen,
+      selectedLetter: null,
+    });
+  }
+  return qs;
+}
+
+/* ═══════════════════════════════════════════════════════
+   FLOW CONTROL
+═══════════════════════════════════════════════════════ */
+
+async function startGeneration() {
+  studyText = pasteArea.value.trim() || studyText;
+  if (studyText.length < 20) return;
+
+  showPanel('loadingPanel');
+
+  const statuses = [
+    ['Parsing your study materials...', 'Reading and cleaning the document text.'],
+    ['Extracting key concepts...', 'Identifying the most important terms and topics.'],
+    ['Analyzing sentence structure...', 'Finding context for each key concept.'],
+    ['Building question templates...', 'Matching concepts to FBLA competitive event formats.'],
+    ['Generating answer choices...', 'Creating plausible distractors for each question.'],
+    ['Finalizing your test...', 'Almost ready — assembling the 50-question quiz.'],
+  ];
+
+  for (let i = 0; i < statuses.length; i++) {
+    document.getElementById('loadingStatus').textContent = statuses[i][0];
+    document.getElementById('loadingSub').textContent    = statuses[i][1];
+    await delay(480 + Math.random() * 200);
+  }
+
+  questions = generateQuestions(studyText);
+  renderQuiz();
+  startTimer();
+  showPanel('quizPanel');
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ── QUIZ RENDERER ─────────────────────────────────────── */
+function renderQuiz() {
+  const container = document.getElementById('questionsContainer');
+  container.innerHTML = '';
+  submitted = false;
+
+  questions.forEach((q, qi) => {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = `qcard-${qi}`;
+
+    const optionsHTML = q.options.map(opt => `
+      <label class="option-label" id="opt-${qi}-${opt.letter}">
+        <input type="radio" name="q${qi}" value="${opt.letter}" onchange="recordAnswer(${qi},'${opt.letter}')"/>
+        <span class="option-letter">${opt.letter}</span>
+        <span>${opt.text}</span>
+      </label>
+    `).join('');
+
+    card.innerHTML = `
+      <div class="q-number">Question ${qi + 1} of ${questions.length}</div>
+      <div class="q-text">${q.stem}</div>
+      <div class="options-list">${optionsHTML}</div>
+      <div class="explanation-box" id="expl-${qi}">
+        <h5>&#128161; AI Explanation</h5>
+        <p id="expl-text-${qi}"></p>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function recordAnswer(qi, letter) {
+  questions[qi].selectedLetter = letter;
+}
+
+/* ── TIMER ─────────────────────────────────────────────── */
+function startTimer() {
+  secsLeft = 50 * 60;
+  secsUsed = 0;
+  submitted = false;
+  if (timerInt) clearInterval(timerInt);
+
+  timerInt = setInterval(() => {
+    secsLeft--;
+    secsUsed++;
+    const m = Math.floor(secsLeft / 60);
+    const s = secsLeft % 60;
+    document.getElementById('timerText').textContent =
+      String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+
+    const timerEl = document.getElementById('timerDisplay');
+    if (secsLeft <= 300) timerEl.classList.add('warning');
+
+    if (secsLeft <= 0) {
+      clearInterval(timerInt);
+      submitQuiz(true);
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInt);
+}
+
+function formatTime(secs) {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+/* ── SUBMISSION & GRADING ──────────────────────────────── */
+function submitQuiz(autoSubmit = false) {
+  if (submitted) return;
+  submitted = true;
+  stopTimer();
+
+  let correct = 0;
+  questions.forEach(q => {
+    if (q.selectedLetter === q.correctLetter) correct++;
+  });
+
+  const total   = questions.length;
+  const pct     = Math.round((correct / total) * 100);
+  const timeUsed = formatTime(secsUsed);
+
+  // Build results
+  document.getElementById('resultsGrade').textContent  = correct + '/' + total + ' — ' + pct + '%';
+  document.getElementById('scoreRingText').textContent  = pct + '%';
+  document.getElementById('resultsSub').textContent =
+    pct >= 80 ? '🎉 Excellent work! You\'re well prepared.' :
+    pct >= 60 ? '👍 Good effort — review the explanations below.' :
+               '📚 Keep studying — the breakdowns below will help.';
+  document.getElementById('statCorrect').textContent = correct;
+  document.getElementById('statWrong').textContent   = total - correct;
+  document.getElementById('statTime').textContent    = timeUsed;
+
+  // Animate score ring
+  const circumference = 2 * Math.PI * 50; // r=50 => ~314
+  const offset = circumference * (1 - pct / 100);
+  setTimeout(() => {
+    document.getElementById('scoreRingFill').style.strokeDashoffset = offset;
+  }, 200);
+
+  // Results breakdown
+  const breakdown = document.getElementById('resultsBreakdown');
+  breakdown.innerHTML = '';
+
+  questions.forEach((q, qi) => {
+    const isCorrect = q.selectedLetter === q.correctLetter;
+    const card = document.createElement('div');
+    card.className = 'result-q-card ' + (isCorrect ? 'correct-card' : 'wrong-card');
+
+    const statusHTML = isCorrect
+      ? '<div class="result-q-status correct">&#10003; Correct</div>'
+      : '<div class="result-q-status wrong">&#10007; Incorrect</div>';
+
+    const optionsHTML = q.options.map(opt => {
+      let cls = '';
+      if (opt.letter === q.correctLetter) cls = 'correct';
+      else if (opt.letter === q.selectedLetter && !isCorrect) cls = 'wrong';
+      return `
+        <label class="option-label ${cls}" style="pointer-events:none;">
+          <span class="option-letter">${opt.letter}</span>
+          <span>${opt.text}</span>
+        </label>`;
+    }).join('');
+
+    const explHTML = !isCorrect ? `
+      <div class="explanation-box show" style="margin-top:1rem;">
+        <h5>&#128161; AI Explanation</h5>
+        <p>${generateExplanation(q)}</p>
+      </div>` : '';
+
+    card.innerHTML = `
+      ${statusHTML}
+      <div class="q-number">Question ${qi + 1}</div>
+      <div class="q-text">${q.stem}</div>
+      <div class="options-list">${optionsHTML}</div>
+      ${explHTML}
+    `;
+    breakdown.appendChild(card);
+  });
+
+  showPanel('resultsPanel');
+
+  // Trigger ring animation after render
+  setTimeout(() => {
+    document.getElementById('scoreRingFill').style.strokeDashoffset = offset;
+  }, 350);
+}
+
+/* ── EXPLANATION GENERATOR ─────────────────────────────── */
+function generateExplanation(q) {
+  const kw = q.keyword;
+  const correctText = q.options.find(o => o.letter === q.correctLetter)?.text || '';
+  const selectedText = q.options.find(o => o.letter === q.selectedLetter)?.text || 'your selected answer';
+
+  let contextNote = '';
+  if (q.contextSentence) {
+    contextNote = ` Your study material states: "${q.contextSentence.trim()}" — `;
+    contextNote += `This reinforces why understanding ${kw} correctly is essential.`;
+  } else {
+    contextNote = ` In professional business and FBLA competitive settings, mastery of ${kw} is a core evaluated competency.`;
+  }
+
+  const explanations = [
+    `The correct answer focuses on applying ${kw} in a structured, professional manner consistent with FBLA judging criteria. "${selectedText}" is incorrect because it misrepresents how ${kw} functions in a competitive business context.${contextNote}`,
+    `"${selectedText}" overlooks the systematic application of ${kw}. The correct choice — "${correctText}" — aligns with how FBLA evaluates this concept: through demonstrated understanding, professional execution, and adherence to event guidelines.${contextNote}`,
+    `In FBLA competitive events, ${kw} is judged on clarity, professionalism, and alignment with business standards. The chosen answer misses this by suggesting an approach inconsistent with those criteria. The correct answer directly addresses the professional application of ${kw}.${contextNote}`,
+    `Understanding ${kw} requires recognizing its role in a complete, professional presentation. "${selectedText}" represents a common misconception. Correct usage of ${kw} — as described in the right answer — demonstrates the depth of business knowledge judges look for.${contextNote}`,
+  ];
+
+  return explanations[q.id % explanations.length];
+}
+
+/* ── RESET ─────────────────────────────────────────────── */
+function resetTool() {
+  studyText = '';
+  questions = [];
+  secsLeft  = 50 * 60;
+  secsUsed  = 0;
+  submitted = false;
+  stopTimer();
+  pasteArea.value = '';
+  dzFilename.textContent = '';
+  fileInput.value = '';
+  genBtn.disabled = true;
+  pdfProgress.classList.remove('show');
+  pdfProgBar.style.width = '0%';
+  document.getElementById('timerDisplay').classList.remove('warning');
+  document.getElementById('timerText').textContent = '50:00';
+  document.getElementById('scoreRingFill').style.strokeDashoffset = '314';
+  showPanel('uploadPanel');
+}
+
+/* ── NAVBAR (handled by animations.js, but mirror active fix) */
+document.querySelectorAll('.stagger-children > *').forEach((el, i) => {
+  el.style.animationDelay = i * 0.1 + 's';
+  el.classList.add('anim-fade-up');
+});
+</script>
+</body>
+</html>
